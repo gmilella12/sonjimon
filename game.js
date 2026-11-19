@@ -38,6 +38,9 @@ const DECAY = {
 const saved = save.loadGame();
 if (saved) Object.assign(sonji, saved.sonji);
 
+// make sure she always has the camera, even with an old save 
+// if (!sonji.inventory.includes("camera")) sonji.inventory.push("camera");
+
 // switch to her saved map
 world.setMap(sonji.map);
 
@@ -123,6 +126,8 @@ function showPhoto(photo){
 function openViewer() {
   // enable the container for the open viewer
   viewer.classList.remove("hidden");
+  // disabling the aPressed button when she opens the viewer, she can scroll also with the aPressed
+  input.aPressed = false;
   openView = {selected: 0};
   const photo = PHOTOS[openView.selected]
   showPhoto(photo)
@@ -301,22 +306,23 @@ function update(dt) {
     if (openView){
       let position = openView.selected;
       // moving backwards, JS keeps the minus sign
-      if (input.leftPressed) { 
+      if ( input.leftPressed ) { 
         position = (position - 1 + PHOTOS.length) % PHOTOS.length; 
         openView.selected = position;
         showPhoto(PHOTOS[position]);
       }
       // moving forward
-      if (input.rightPressed){ 
+      if ( input.rightPressed || input.aPressed ){ 
         position = (position + 1) % PHOTOS.length;
         openView.selected = position;
         showPhoto(PHOTOS[position]); 
+        input.aPressed = false; // resetting interaction button
       }
-      if (input.bagPressed || input.aPressed){
+      if (input.bagPressed){
         viewer.classList.add("hidden");
         openView = null;
         input.bagPressed = false;
-        input.aPressed = false;
+        // input.aPressed = false;
       }
     }
   }
