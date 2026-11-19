@@ -75,7 +75,10 @@ const ACTIONS = {
   },
   stopMusic: () => { stopMusic(); },
   selectMovie: () => { selectMovie() },
-  watchMovie: (s, choice) => { watchMovie(choice.item) },
+  watchMovie: (s, choice) => { 
+    watchMovie(choice.item);
+    utils.applyStats(s, { happiness: 10 }); 
+  },
 };
 
 // --- interaction
