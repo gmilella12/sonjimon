@@ -84,7 +84,7 @@ const BOX_H = 80;
 
 // onClose parameter when energy hits 0, so she moves back home 
 function openDialog(text, choices = [], onClose = null){
-  ctx.font = "8px monospace";
+  ctx.font = "12px monospace";
   dialog = {
     lines: utils.wrapText(ctx, text, BOX_W - 12),
     page: 0,
@@ -109,6 +109,13 @@ function goHomeAndSleep() {
   sonji.tileY = 4;
   ACTIONS.sleep(sonji);
 }
+
+// emoji for the status bars
+const BARS = [
+  { stat: "energy", icon: "⚡" },
+  { stat: "satiety", icon: "🍝" },
+  { stat: "happiness", icon: "😊" },
+];
 
 function update(dt) {
   // save logic goes here (dt = seconds since last frame)
@@ -360,16 +367,23 @@ function draw() {
   // ctx.fillStyle = "#2e412e";
 
   // bars
-  ctx.strokeRect(2, 2, 30, 4);
-  ctx.fillRect(2, 2, 30 * (sonji.energy / 100), 4); // energy
-  ctx.strokeRect(42, 2, 30, 4);
-  ctx.fillRect(42, 2, 30 * (sonji.satiety / 100), 4); // satiety
-  ctx.strokeRect(82, 2, 30, 4);
-  ctx.fillRect(82, 2, 30 * (sonji.happiness / 100), 4); // happines 
+  ctx.font = "14px sans-serif";
+  ctx.textBaseline = "middle";
+  for (let i = 0; i < BARS.length; i++) {
+    const b = BARS[i];
+    const x = 4 + i * 104; // spacing between the three bars
+    const y = 6;
+
+    ctx.fillText(b.icon, x, y + 4); // the icon
+    ctx.strokeStyle = "#0f380f"; 
+    ctx.strokeRect(x + 20, y, 70, 8); // bar outline
+    ctx.fillStyle = "#0f380f";
+    ctx.fillRect(x + 20, y, 70 * (sonji[b.stat] / 100), 8); // bar fill
+  }
 
   // active effects
   ctx.fillStyle = "#0f380f";
-  ctx.font = "8px monospace";
+  ctx.font = "10px monospace";
   ctx.textBaseline = "top";
   for (let i = 0; i < sonji.effects.length; i++) {
     const e = sonji.effects[i];
@@ -400,7 +414,7 @@ function draw() {
 
     // text: only the lines of the current page
     ctx.fillStyle = "#0f380f";
-    ctx.font = "8px monospace";
+    ctx.font = "12px monospace";
     ctx.textBaseline = "top";
 
     const start = dialog.page * LINES_PER_PAGE;
@@ -420,7 +434,7 @@ function draw() {
     if (dialog.choosing){
       // choice box will appear above the text box
       const choiceH = dialog.choices.length * 20 + 8; 
-      const choiceY = BOX_Y - choiceH - 2;
+      const choiceY = BOX_Y - choiceH - 8;
 
       ctx.fillStyle = "#e0f8d0";
       ctx.fillRect(BOX_X, choiceY, BOX_W, choiceH);
@@ -440,7 +454,7 @@ function draw() {
     const bagW = 90;
     const bagH = sonji.inventory.length * 20 + 18; // 10 px per item + room for the title
     const bagX = canvas.width - bagW - 4; // right side of the screen
-    const bagY = 4;
+    const bagY = 28;
 
     ctx.fillStyle = "#e0f8d0";
     ctx.fillRect(bagX, bagY, bagW, bagH);
@@ -448,7 +462,7 @@ function draw() {
     ctx.strokeRect(bagX + 0.5, bagY + 0.5, bagW - 1, bagH - 1);
 
     ctx.fillStyle = "#0f380f";
-    ctx.font = "8px monospace";
+    ctx.font = "12px monospace";
     ctx.textBaseline = "top";
     ctx.fillText("BAG", bagX + 6, bagY + 4);
 
