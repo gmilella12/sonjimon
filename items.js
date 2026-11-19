@@ -23,6 +23,11 @@ export const ITEMS = {
     effect: "drunk",
     text: "Ahh bella fresca!",
     },
+  camera: {
+    name: "Camera",
+    type: "gadget",
+    text: "Vediamo un po' di ricordi!"
+  }
 };
 
 export function useItem(s, itemId) {

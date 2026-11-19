@@ -7,6 +7,10 @@ export function saveGame(sonji) {
 }
 
 export function loadGame() {
+    if (location.search.includes("reset")) {
+    localStorage.removeItem(KEY);
+    return null;
+    }
     const raw = localStorage.getItem(KEY);
     if (raw === null) return null; // first time playing: nothing saved
     return JSON.parse(raw);

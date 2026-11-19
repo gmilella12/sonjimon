@@ -6,6 +6,7 @@ import { ITEMS, useItem } from "./items.js";
 import * as fx from "./effects.js";
 import * as save from "./save.js";
 import { playMusic, stopMusic } from "./music.js";
+import { PHOTOS } from "./photos.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -24,7 +25,7 @@ const sonji = {
   tileX: 3,
   tileY: 3,
   facing: "down",
-  inventory: [], // list of ITEMS in the menu
+  inventory: ["camera"], // list of ITEMS in the menu
   effects: [], // each effect has a name and duration
   map: "city", // map location
 };
@@ -99,7 +100,7 @@ function closeDialog() {
   const done = dialog.onClose;
   dialog = null;
   if (done) done();
-}
+};
 
 // call it when energy is 0 and she close the dialog message
 function goHomeAndSleep() {
@@ -108,7 +109,25 @@ function goHomeAndSleep() {
   sonji.tileX = 2; // a floor tile next to her bed
   sonji.tileY = 4;
   ACTIONS.sleep(sonji);
+};
+
+// open viewer for displaying photos
+let openView = null; // null = closed; { selected: 0 } = open
+const viewer = document.getElementById("viewer");
+const viewerImg = document.getElementById("viewerImg");
+const viewerCaption = document.getElementById("viewerCaption");
+function showPhoto(photo){
+  viewerImg.src = photo.path;
+  viewerCaption.textContent = photo.caption;
 }
+function openViewer() {
+  // enable the container for the open viewer
+  viewer.classList.remove("hidden");
+  openView = {selected: 0};
+  const photo = PHOTOS[openView.selected]
+  showPhoto(photo)
+};
+
 
 // emoji for the status bars
 const BARS = [
@@ -134,7 +153,7 @@ function update(dt) {
       sonji[key] = utils.clamp(sonji[key] - (DECAY[key] * dt));
     }
     // grid movement
-    if (!moving && dialog === null && bagMenu === null){
+    if (!moving && dialog === null && bagMenu === null && openView === null){
       if (input.up || input.down || input.left || input.right){
         targetX = sonji.tileX;
         targetY = sonji.tileY;
@@ -256,18 +275,48 @@ function update(dt) {
       }    
     }
     // bagMenu open menu
-    if (bagMenu){
+    if (bagMenu && openView === null){
       if (input.upPressed) bagMenu.selected = Math.max(0, bagMenu.selected - 1);
       if (input.downPressed) bagMenu.selected = Math.min(sonji.inventory.length - 1, bagMenu.selected + 1);
       if (input.aPressed && sonji.inventory.length > 0 ){
         const itemId = sonji.inventory[bagMenu.selected];
-        useItem(sonji, itemId);
-        sonji.inventory.splice(bagMenu.selected, 1); // remove 1 item at that index
-        bagMenu = null;
-        
         const item = ITEMS[itemId];
-        let text = item.text ?? "Used " + item.name + ".";
-        openDialog(text);
+        if (item.type === "gadget"){
+          bagMenu = null;
+          // open the camera viewer
+          openDialog(item.text, [], openViewer);
+        }
+        else{
+          useItem(sonji, itemId);
+          sonji.inventory.splice(bagMenu.selected, 1); // remove 1 item at that index
+          bagMenu = null;
+          
+          let text = item.text ?? "Used " + item.name + ".";
+          openDialog(text);
+        }
+      }
+    }
+
+    // viewer menu for photos
+    if (openView){
+      let position = openView.selected;
+      // moving backwards, JS keeps the minus sign
+      if (input.leftPressed) { 
+        position = (position - 1 + PHOTOS.length) % PHOTOS.length; 
+        openView.selected = position;
+        showPhoto(PHOTOS[position]);
+      }
+      // moving forward
+      if (input.rightPressed){ 
+        position = (position + 1) % PHOTOS.length;
+        openView.selected = position;
+        showPhoto(PHOTOS[position]); 
+      }
+      if (input.bagPressed || input.aPressed){
+        viewer.classList.add("hidden");
+        openView = null;
+        input.bagPressed = false;
+        input.aPressed = false;
       }
     }
   }
@@ -276,6 +325,8 @@ function update(dt) {
   input.upPressed = false;
   input.downPressed = false;
   input.bagPressed = false;
+  input.leftPressed = false;
+  input.rightPressed = false;
 
   // saving while playing (every 5 sec) or the moment she closes
   document.addEventListener("visibilitychange", () => {

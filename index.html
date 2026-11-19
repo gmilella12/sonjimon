@@ -70,6 +70,7 @@
       background: var(--frame);
       border-radius: 8px;
       padding: 12px;
+      position: relative; /* lets the viewer sit on top of the canvas */
     }
     .screen canvas {
       display: block;
@@ -77,6 +78,32 @@
       image-rendering: pixelated;
       background: #000000;
     }
+
+    /* photo viewer */
+    .viewer {
+      position: absolute;
+      inset: 12px;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .viewer img {
+      max-width: 100%;
+      max-height: 85%;
+      object-fit: contain;
+    }
+    #viewerCaption {
+      color: #fff;
+      font-family: sans-serif;
+      font-size: 14px;
+      text-align: center;
+      padding: 0 8px;
+    }
+
+    .hidden { display: none; }
 
     /* --- controls --- */
     .controls {
@@ -131,6 +158,10 @@
   <div class="gameboy">
     <div class="screen">
       <canvas id="screen" width="320" height="288"></canvas>
+      <div id="viewer" class="viewer hidden">
+        <img id="viewerImg" alt="">
+        <div id="viewerCaption"></div>
+      </div>
     </div>
 
     <div class="controls">

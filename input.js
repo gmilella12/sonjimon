@@ -7,6 +7,8 @@ export const input = {
   aPressed: false,
   upPressed: false,
   downPressed: false,
+  leftPressed: false,
+  rightPressed: false,
   bagPressed: false, // button to open the inventory
 }
 
@@ -18,6 +20,8 @@ window.addEventListener("keydown", (e) => {
   if (e.key == " ") input.aPressed = true;
   if (e.key == "ArrowUp" && !e.repeat) input.upPressed = true;
   if (e.key == "ArrowDown" && !e.repeat) input.downPressed = true;
+  if (e.key == "ArrowLeft" && !e.repeat) input.leftPressed = true;
+  if (e.key == "ArrowRight" && !e.repeat) input.rightPressed = true;
   if (e.code === "KeyB" && !e.repeat) input.bagPressed = true; 
 });
 window.addEventListener("keyup", (e) => {
