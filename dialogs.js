@@ -57,7 +57,14 @@ export const DIALOGS = {
     cinema: {
         text: "Potrei guardarmi un film...",
         choices: [
-            { label: "Si, cosa c'e' al cinema?", action: "selectMovie" },
+            { label: "Si, cosa c'e' al cinema?", action: "selectMovie", venue: "cinema" },
+            { label: "No", action: null, reply: "Mi faccio un giro." },
+        ]
+    },
+    theater: { 
+        text: "Mi va di andare a teatro?",
+        choices: [
+            { label: "Si, cosa c'e' in programma?", action: "selectMovie", venue: "theater" },
             { label: "No", action: null, reply: "Mi faccio un giro." },
         ]
     }

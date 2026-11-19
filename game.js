@@ -8,6 +8,7 @@ import * as save from "./save.js";
 import { playMusic, stopMusic } from "./music.js";
 import { PHOTOS } from "./photos.js";
 import { MOVIES } from "./cinema.js";
+import { SHOWS } from "./theater.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -74,9 +75,9 @@ const ACTIONS = {
     utils.applyStats(s, { happiness: 10 });
   },
   stopMusic: () => { stopMusic(); },
-  selectMovie: () => { selectMovie() },
-  watchMovie: (s, choice) => { 
-    watchMovie(choice.item);
+  selectShow: (s, choice) => { selectShow(choice.venue) },
+  watchShow: (s, choice) => { 
+    watchShow(choice.item);
     utils.applyStats(s, { happiness: 10 }); 
   },
 };
@@ -139,7 +140,7 @@ function openViewer() {
   showPhoto(photo)
 };
 
-// --- watching a movie
+// --- watching a movie/theater
 // get element in the frame (HTML)
 const cinema = document.getElementById("cinema");
 const cinemaFrame = document.getElementById("cinemaFrame");
@@ -147,11 +148,12 @@ const cinemaFrame = document.getElementById("cinemaFrame");
 function todaysFilm(){
     return Math.floor(Date.now() / 86400000) % MOVIES.length; // picking film id corresponding to today's date
 }
-function selectMovie() {
-    stopMovie(); // only one film at a time
-    const film = MOVIES[todaysFilm()];
+function selectShow(venue) {
+    stopShow(); // only one film at a time
+    let film = MOVIES[todaysFilm()];
+    if (venue === 'theater') film = SHOWS[todaysFilm()];
     openDialog(
-      "Oggi al cinema: " + film.caption,
+      "Oggi al " + venue + ": " + film.caption,
       [
         { label: "Lo guardo", action: "watchMovie", item: film },
         { label: "Non mi va", action: null, reply: "Mi faccio un giro." },
@@ -159,17 +161,17 @@ function selectMovie() {
     );
 
 }
-let movieView = null; // null = closed; { selected: 0 } = open
-function watchMovie(film){
+let showView = null; // null = closed; { selected: 0 } = open
+function watchShow(film){
   // enable the container for the cinema frame
   cinema.classList.remove("hidden");
   cinemaFrame.src = `https://www.youtube-nocookie.com/embed/${film.id}`;
-  movieView = film;
+  showView = film;
 };
-function stopMovie() {
+function stopShow() {
   cinemaFrame.src = "";
   cinema.classList.add("hidden");
-  movieView = null;
+  showView = null;
   input.bagPressed = false;
 };
 
