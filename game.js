@@ -7,6 +7,7 @@ import * as fx from "./effects.js";
 import * as save from "./save.js";
 import { playMusic, stopMusic } from "./music.js";
 import { PHOTOS } from "./photos.js";
+import { MOVIES } from "./cinema.js";
 
 const canvas = document.getElementById("screen");
 const ctx = canvas.getContext("2d");
@@ -73,6 +74,8 @@ const ACTIONS = {
     utils.applyStats(s, { happiness: 10 });
   },
   stopMusic: () => { stopMusic(); },
+  selectMovie: () => { selectMovie() },
+  watchMovie: (s, choice) => { watchMovie(choice.item) },
 };
 
 // --- interaction
@@ -133,6 +136,39 @@ function openViewer() {
   showPhoto(photo)
 };
 
+// --- watching a movie
+// get element in the frame (HTML)
+const cinema = document.getElementById("cinema");
+const cinemaFrame = document.getElementById("cinemaFrame");
+
+function todaysFilm(){
+    return Math.floor(Date.now() / 86400000) % MOVIES.length; // picking film id corresponding to today's date
+}
+function selectMovie() {
+    stopMovie(); // only one film at a time
+    const film = MOVIES[todaysFilm()];
+    openDialog(
+      "Oggi al cinema: " + film.caption,
+      [
+        { label: "Lo guardo", action: "watchMovie", item: film },
+        { label: "Non mi va", action: null, reply: "Mi faccio un giro." },
+      ] 
+    );
+
+}
+let movieView = null; // null = closed; { selected: 0 } = open
+function watchMovie(film){
+  // enable the container for the cinema frame
+  cinema.classList.remove("hidden");
+  cinemaFrame.src = `https://www.youtube-nocookie.com/embed/${film.id}`;
+  movieView = film;
+};
+function stopMovie() {
+  cinemaFrame.src = "";
+  cinema.classList.add("hidden");
+  movieView = null;
+  input.bagPressed = false;
+};
 
 // emoji for the status bars
 const BARS = [
@@ -158,7 +194,7 @@ function update(dt) {
       sonji[key] = utils.clamp(sonji[key] - (DECAY[key] * dt));
     }
     // grid movement
-    if (!moving && dialog === null && bagMenu === null && openView === null){
+    if (!moving && dialog === null && bagMenu === null && openView === null && movieView == null){
       if (input.up || input.down || input.left || input.right){
         targetX = sonji.tileX;
         targetY = sonji.tileY;
@@ -221,7 +257,7 @@ function update(dt) {
     }
 
     // interaction 
-    if (input.aPressed && !moving && bagMenu === null){
+    if (input.aPressed && !moving && bagMenu === null && openView === null && movieView === null ){
       if (dialog === null){ // text box NOT open; open and add text
         // which tile in front?
         const facingTileX = sonji.tileX + utils.FACINGDIRS[sonji.facing].x;
@@ -243,11 +279,15 @@ function update(dt) {
       else{  // text box already open; go to next page or close it after the dialog.page++ * LINES_PER_PAGE is bigger than lines length
         if (dialog.choosing) {
           const choice = dialog.choices[dialog.selected];
+          const before = dialog; // remember the dialog which is open now
+      
           if (choice.action) ACTIONS[choice.action](sonji, choice); // check if there is an action and run one
-          if (choice.reply) {
-            openDialog(choice.reply); // show the reply, with no further choices
-          } else{
-            closeDialog();
+          if (dialog === before){ // running only if the action did not open a new dialog
+            if (choice.reply) {
+              openDialog(choice.reply); // show the reply, with no further choices
+            } else{
+              closeDialog();
+            }
           }
         }
         else{
@@ -271,7 +311,7 @@ function update(dt) {
 
     // inventory
     // inventory button
-    if (input.bagPressed){
+    if (input.bagPressed && openView === null && movieView === null){
       if (bagMenu) { // open
         bagMenu = null; // close it next
       } else if (dialog === null && !moving){ // check if it's empty, otherwise initialize it
@@ -324,6 +364,11 @@ function update(dt) {
         input.bagPressed = false;
         // input.aPressed = false;
       }
+    }
+
+    // movie view
+    if (movieView){
+      if (input.bagPressed){ stopMovie()}
     }
   }
   // resetting interaction buttons

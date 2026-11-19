@@ -43,15 +43,22 @@ export const DIALOGS = {
         ]
     },
     desk: {
-    text: "Potrei suonare! Cosa suono?",
-    choices: [
-        { label: "Jazz", action: "music", genre: "jazz", reply: "Smooth..." },
-        { label: "Pop", action: "music", genre: "pop", reply: "Si balla!" },
-        { label: "Bass", action: "music", genre: "bass", reply: "MO E DO!!" },
-        { label: "Classica", action: "music", genre: "classica", reply: "Brividi." },
-        { label: "Ambient", action: "music", genre: "ambient", reply: "Brividi." },
-        { label: "Basta musica", action: "stopMusic", reply: null },
-        { label: "Niente", action: null, reply: "Forse coccolo Mina..." },
-    ],
+        text: "Potrei suonare! Cosa suono?",
+        choices: [
+            { label: "Jazz", action: "music", genre: "jazz", reply: "Smooth..." },
+            { label: "Pop", action: "music", genre: "pop", reply: "Si balla!" },
+            { label: "Bass", action: "music", genre: "bass", reply: "MO E DO!!" },
+            { label: "Classica", action: "music", genre: "classica", reply: "Brividi." },
+            { label: "Ambient", action: "music", genre: "ambient", reply: "Brividi." },
+            { label: "Basta musica", action: "stopMusic", reply: null },
+            { label: "Niente", action: null, reply: "Forse coccolo Mina..." },
+        ],
     },
+    cinema: {
+        text: "Potrei guardarmi un film...",
+        choices: [
+            { label: "Si, cosa c'e' al cinema?", action: "selectMovie" },
+            { label: "No", action: null, reply: "Mi faccio un giro." },
+        ]
+    }
 };

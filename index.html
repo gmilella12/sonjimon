@@ -103,6 +103,12 @@
       padding: 0 8px;
     }
 
+    #cinemaFrame {
+      width: 100%;
+      aspect-ratio: 16 / 9; /* video shape */
+      border: none;
+    }
+
     .hidden { display: none; }
 
     /* --- controls --- */
@@ -161,6 +167,9 @@
       <div id="viewer" class="viewer hidden">
         <img id="viewerImg" alt="">
         <div id="viewerCaption"></div>
+      </div>
+      <div id="cinema" class="viewer hidden">
+        <iframe id="cinemaFrame" allow="autoplay; fullscreen" allowfullscreen></iframe>
       </div>
     </div>
 
