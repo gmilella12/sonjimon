@@ -10,7 +10,7 @@ export const PHOTOS = [
     caption: "A wholefull lunch in Aeghina"
   },
   {
-    path: "photos/3.jpeg",
+    path: "photos/3.jpg",
     caption: "Amore al temp(i)o di Aegina"
   },
   {
@@ -38,19 +38,19 @@ export const PHOTOS = [
     caption: "Mo dall a leccare..."
   },
   {
-    path: "photos/10.jpeg",
+    path: "photos/10.jpg",
     caption: "Bonet: leccornia piemontese"
   },
   {
-    path: "photos/11.jpeg",
+    path: "photos/11.jpg",
     caption: "Gennaro 'O' Bonbon' e Carmela"
   },
   {
-    path: "photos/12.jpeg",
+    path: "photos/12.jpg",
     caption: "10/10"
   },
   {
-    path: "photos/13.jpeg",
+    path: "photos/13.jpg",
     caption: "Sonia legge la mia tesi di dottorato in metro"
   },
   {
@@ -62,7 +62,7 @@ export const PHOTOS = [
     caption: "Bellissima mostra alla Galleria Nazionale di Torino"
   },
   {
-    path: "photos/16.jpeg",
+    path: "photos/16.PNG",
     caption: "Il porco"
   },
   {
@@ -94,11 +94,11 @@ export const PHOTOS = [
     caption: "Sonia Simpson"
   },
   {
-    path: "photos/24.jpeg",
+    path: "photos/24.PNG",
     caption: "Cosa guardi ancora piccola?"
   },
   {
-    path: "photos/25.jpeg",
+    path: "photos/25.PNG",
     caption: "POV: Sonio Simonio ti sta chiamando!!"
   },
   {
