@@ -9,4 +9,8 @@ export const SHOWS = [
     id: "GmTfoY60nAk",
     caption: "Brahms: Sinfonia Nr. 3, conduce Alan Gilbert"
   },
+  {
+    id: "MfM7Y9Pcdzw",
+    caption: "Sergei Prokofiev: Peter and the Wolf. Vancouver Symphony Orchestra."
+  }
 ];

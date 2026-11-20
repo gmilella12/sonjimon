@@ -23,11 +23,12 @@ async function loadMap(file) {
 
   // objects: every custom property is copied in (dialog, map, targetX, ...)
   const objs = [];
+  const zns = [];
   for (const obj of objectLayer?.objects ?? []) {
     const props = {};
     for (const p of obj.properties ?? []) props[p.name] = p.value;
 
-    objs.push({
+    const entry = {
       name: obj.name,
       kind: obj.type,
       tileX: Math.floor(obj.x / T),
@@ -36,10 +37,13 @@ async function loadMap(file) {
       tileW: Math.max(1, Math.round(obj.width / T)),
       tileH: Math.max(1, Math.round(obj.height / T)),
       ...props,
-    });
+    }
+    // keep zone areas separated from map objects
+    if (obj.type === 'zone'){ zns.push(entry); }
+    else{ objs.push(entry);}
   }
 
-  return { grid, width: W, height: H, objects: objs, tile: T };
+  return { grid, width: W, height: H, objects: objs, tile: T , zones: zns};
 }
 
 // --- all maps, loaded once at startup
@@ -49,7 +53,7 @@ const MAPS = {
 };
 
 // --- the current map (live: other files see changes automatically)
-export let worldMap, MAP_W, MAP_H, objects, currentMap;
+export let worldMap, MAP_W, MAP_H, objects, currentMap, zones;
 
 export function setMap(name) {
   const m = MAPS[name];
@@ -58,14 +62,23 @@ export function setMap(name) {
   MAP_H = m.height;
   objects = m.objects;
   currentMap = name;
+  zones = m.zones;
 }
-setMap("house"); // start in the city
+setMap("city"); // start in the city
 
 // which object covers this tile?
 export function objectAt(x, y) {
   return objects.find(o =>
     x >= o.tileX && x < o.tileX + o.tileW &&
     y >= o.tileY && y < o.tileY + o.tileH
+  );
+}
+
+// is next tile a tile from a zone?
+export function zoneAt(x, y) {
+  return zones.find(z =>
+    x >= z.tileX && x < z.tileX + z.tileW &&
+    y >= z.tileY && y < z.tileY + z.tileH
   );
 }
 

@@ -56,6 +56,7 @@ const SPRITE_H = 48;
 let progress = 0;
 let targetX = 0;
 let targetY = 0;
+let rememberedZone = null;
 
 // --- action
 let moving = false;
@@ -199,7 +200,7 @@ function update(dt) {
       sonji[key] = utils.clamp(sonji[key] - (DECAY[key] * dt));
     }
     // grid movement
-    if (!moving && dialog === null && bagMenu === null && openView === null && movieView == null){
+    if (!moving && dialog === null && bagMenu === null && openView === null && showView == null){
       if (input.up || input.down || input.left || input.right){
         targetX = sonji.tileX;
         targetY = sonji.tileY;
@@ -251,6 +252,14 @@ function update(dt) {
           sonji.tileY = door.targetY;
         }
 
+        // is the next target a zone? 
+        const zone = world.zoneAt(sonji.tileX, sonji.tileY) ?? null;
+        if (zone !== rememberedZone){
+          if (zone) { playMusic(zone.music); }
+          else{ stopMusic(); }
+          rememberedZone = zone; // flagging the zone when she enters, so the game remembers if she steps onto a different area
+        }
+
         moving = false;
       }
     }
@@ -262,7 +271,7 @@ function update(dt) {
     }
 
     // interaction 
-    if (input.aPressed && !moving && bagMenu === null && openView === null && movieView === null ){
+    if (input.aPressed && !moving && bagMenu === null && openView === null && showView === null ){
       if (dialog === null){ // text box NOT open; open and add text
         // which tile in front?
         const facingTileX = sonji.tileX + utils.FACINGDIRS[sonji.facing].x;
@@ -316,7 +325,7 @@ function update(dt) {
 
     // inventory
     // inventory button
-    if (input.bagPressed && openView === null && movieView === null){
+    if (input.bagPressed && openView === null && showView === null){
       if (bagMenu) { // open
         bagMenu = null; // close it next
       } else if (dialog === null && !moving){ // check if it's empty, otherwise initialize it
@@ -372,7 +381,7 @@ function update(dt) {
     }
 
     // movie view
-    if (movieView){
+    if (showView){
       if (input.bagPressed){ stopMovie()}
     }
   }

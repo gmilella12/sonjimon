@@ -4,7 +4,11 @@ export const SONGS = {
   pop: ["music/pop1.mp3", "music/pop2.mp3", "music/pop3.mp3"],
   classica: ["music/classica1.mp3"],
   bass: ["music/bass/Yunk - Lacking Input.mp3"],
-  ambient: ["music/ambient/Various Artists - 22° Halo - 01 Genus Aix - Trickster.mp3"]
+  ambient: ["music/ambient/Various Artists - 22° Halo - 01 Genus Aix - Trickster.mp3"],
+  reggae: [
+    "music/reggae/Rockers International Records - King Tubby's Meets the Rockers Uptown - 01 Keep on Dubbing.mp3",
+    "music/reggae/Rockers International Records - King Tubby's Meets the Rockers Uptown - 11 Frozen Dub.mp3"
+  ]
 };
 
 let current = null; // the song playing right now
