@@ -67,5 +67,26 @@ export const DIALOGS = {
             { label: "Si, cosa c'e' in programma?", action: "selectMovie", venue: "theater" },
             { label: "No", action: null, reply: "Mi faccio un giro." },
         ]
+    },
+    peppeLerario: {
+        text: "Ciao Sonia, ho trovato questa vecchia macchina fotografica che non uso piu'. Te la regalo se vuoi.",
+        choices: [
+            { label: "Wow, che bel regalo!", action: "give", item: "camera", reply: "Ecco a te! Non ho controllato le foto... spero non siano strambe!" },
+            { label: "No peppe, non posso accettare!", action: null, reply: "Ok, quando vuoi ripassa da qui." }
+        ],
+    },
+    tonyL: {
+        text: "Amo, vuoi fumare uno grosso?",
+        choices: [
+            { label: "Dai, fammelo fare un tiro", action: "use", item: "joint", reply: "Eccolo lo sbombolones." },
+            { label: "No amo, sto gia' squagliata di mio", action: null, reply: "Tranqui, quando vuoi sta fatto." }
+        ],
+    },
+    gym: {
+        text: "Mi alleno?",
+        choices: [
+            { label: "Sala pesi", action: "stats", stats: {energy: -10, satiety: -10}, reply: "Minchia, che fatica!" },
+            { label: "Yoga", action: "stats", stats: {energy: -5, happiness: 10}, reply: "Mi sento rigenerata" }
+        ],
     }
 };

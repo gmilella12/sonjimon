@@ -27,7 +27,7 @@ const sonji = {
   tileX: 3,
   tileY: 3,
   facing: "down",
-  inventory: ["camera"], // list of ITEMS in the menu
+  inventory: [], // list of ITEMS in the menu
   effects: [], // each effect has a name and duration
   map: "city", // map location
 };
@@ -39,9 +39,6 @@ const DECAY = {
 // load a saved game, if there is one
 const saved = save.loadGame();
 if (saved) Object.assign(sonji, saved.sonji);
-
-// make sure she always has the camera, even with an old save 
-// if (!sonji.inventory.includes("camera")) sonji.inventory.push("camera");
 
 // switch to her saved map
 world.setMap(sonji.map);
@@ -88,15 +85,17 @@ let dialog = null;
 let bagMenu = null; // null = closed; { selected: 0 } = open
 
 // --- text box
-const LINES_PER_PAGE = 3;
+const FONT = "12px monospace"; // text font size
+const LINE_H = 16;
 const BOX_X = 4;
-const BOX_Y = canvas.height - 44; // 44 px from the bottom
 const BOX_W = canvas.width - 8; // 4 px margin left and right
-const BOX_H = 80;
+const BOX_H = 60;
+const BOX_Y = canvas.height - BOX_H - 4;
+const LINES_PER_PAGE = Math.floor((BOX_H - 12) / LINE_H);
 
 // onClose parameter when energy hits 0, so she moves back home 
 function openDialog(text, choices = [], onClose = null){
-  ctx.font = "12px monospace";
+  ctx.font = FONT;
   dialog = {
     lines: utils.wrapText(ctx, text, BOX_W - 12),
     page: 0,
@@ -230,6 +229,7 @@ function update(dt) {
           targetX = sonji.tileX + step.x;
           targetY = sonji.tileY + step.y;
         }
+      
         if (utils.canWalk(targetX, targetY) && sonji.energy > 0){
           moving = true;
           progress = 0;
@@ -237,7 +237,11 @@ function update(dt) {
       }
     }
     else if (moving){
-      progress += dt / stepDuration * (0.60 + 0.40 * sonji.energy / 100);
+      // adding effect of being stoned
+      // she moves slower
+      const stonedFactor = fx.hasEffect(sonji, "stoned") ? 0.5 : 1;
+
+      progress += dt / stepDuration * (0.60 + 0.40 * sonji.energy / 100) * stonedFactor;
       if (progress >= 1){
         sonji.tileX = targetX;
         sonji.tileY = targetY;
@@ -269,6 +273,11 @@ function update(dt) {
     for (const key in DECAY){
       sonji[key] = utils.clamp(sonji[key] - (DECAY[key] * sickFactor * dt));
     }
+    const munchiesFactor = fx.hasEffect(sonji, "stoned") ? 2 : 1;
+    sonji.satiety = utils.clamp(sonji.satiety - (DECAY.satiety * munchiesFactor * dt));
+    if (fx.hasEffect(sonji, "stoned")){
+      sonji.happiness = utils.clamp( sonji.happiness + Math.sin(performance.now() / 2000) * 3 * dt);
+    } // first number slowness, second is strength
 
     // interaction 
     if (input.aPressed && !moving && bagMenu === null && openView === null && showView === null ){
@@ -429,6 +438,12 @@ function draw() {
   if (fx.hasEffect(sonji, "drunk")) {
     camX += Math.round(Math.sin(performance.now() / 300) * 2);
   }
+  if (fx.hasEffect(sonji, "stoned")) {
+    camX += Math.round(Math.sin(performance.now() / 800) * 2);
+    camY += Math.round(Math.cos(performance.now() / 500) * 2);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.2)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
 
   // map, shifted by camera, from png
   for (let y = 0; y < world.MAP_H; y++) {
@@ -482,6 +497,12 @@ function draw() {
   // if (sonji.facing === "right"){ ctx.fillRect(sx + TILE - 1, sy, 1, TILE); }
   // ctx.fillStyle = "#2e412e";
 
+  // fog over the world when she is stoned, under the UI
+  if (fx.hasEffect(sonji, "stoned")) {
+    ctx.fillStyle = "rgba(255, 255, 255, 0.33)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
   // bars
   ctx.font = "14px sans-serif";
   ctx.textBaseline = "middle";
@@ -530,7 +551,7 @@ function draw() {
 
     // text: only the lines of the current page
     ctx.fillStyle = "#0f380f";
-    ctx.font = "12px monospace";
+    ctx.font = FONT;
     ctx.textBaseline = "top";
 
     const start = dialog.page * LINES_PER_PAGE;
@@ -566,10 +587,17 @@ function draw() {
   }
 
   // bag menu 
-  if (bagMenu !== null){
-    const bagW = 90;
-    const bagH = sonji.inventory.length * 20 + 18; // 10 px per item + room for the title
-    const bagX = canvas.width - bagW - 4; // right side of the screen
+  if (bagMenu !== null) {
+    ctx.font = FONT; // set the font BEFORE measuring
+
+    // width: as wide as the longest line, plus padding
+    let widest = ctx.measureText("BAG").width;
+    for (const id of sonji.inventory) {
+      widest = Math.max(widest, ctx.measureText("▶ " + ITEMS[id].name).width);
+    }
+    const bagW = Math.ceil(widest) + 12; // 6 px padding left and right
+    const bagH = (sonji.inventory.length + 1) * LINE_H + 8; // +1 line for the title
+    const bagX = canvas.width - bagW - 4;
     const bagY = 28;
 
     ctx.fillStyle = "#e0f8d0";
@@ -578,15 +606,14 @@ function draw() {
     ctx.strokeRect(bagX + 0.5, bagY + 0.5, bagW - 1, bagH - 1);
 
     ctx.fillStyle = "#0f380f";
-    ctx.font = "12px monospace";
     ctx.textBaseline = "top";
     ctx.fillText("BAG", bagX + 6, bagY + 4);
 
     for (let i = 0; i < sonji.inventory.length; i++) {
       const marker = i === bagMenu.selected ? "▶ " : "  ";
       const name = ITEMS[sonji.inventory[i]].name;
-      ctx.fillText(marker + name, bagX + 6, bagY + 14 + i * 10);
-      }
+      ctx.fillText(marker + name, bagX + 6, bagY + 4 + (i + 1) * LINE_H); // row 0 is the title
+    }
   }
 }
 

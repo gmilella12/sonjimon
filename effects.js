@@ -1,6 +1,7 @@
 export const EFFECTS = {
   drunk: { label: "DRUNK", duration: 20 },
   sick:  { label: "SICK",  duration: 20 },
+  stoned: {label: "STONED", duration: 20}
 };
 
 export function addEffect(s, name){

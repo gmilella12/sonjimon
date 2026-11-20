@@ -27,6 +27,12 @@ export const ITEMS = {
     name: "Camera",
     type: "gadget",
     text: "Vediamo un po' di ricordi!"
+  },
+  joint: {
+    name: "Joint",
+    type: "joint",
+    stats: {happiness: 10, energy: -5}, 
+    effect: "stoned",
   }
 };
 
