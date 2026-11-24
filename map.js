@@ -50,6 +50,7 @@ async function loadMap(file) {
 const MAPS = {
   city: await loadMap("./city.tmj"),
   house: await loadMap("./house_intern.tmj"),
+  falegnameria: await loadMap("./falegnameria.tmj"),
 };
 
 // --- the current map (live: other files see changes automatically)
@@ -96,6 +97,9 @@ export const TILES = {
   10: { name: "wallTop", walkable: false },
   11: { name: "cornerLeft", walkable: false },
   12: { name: "cornerRight", walkable: false },
+  13: { name: "floorFal", walkable: true },
+  14: { name: "wallFal", walkable: false },
+  15: { name: "wallFalPaints", walkable: false },
 };
 
 export const TILE = MAPS.city.tile;

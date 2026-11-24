@@ -67,6 +67,9 @@ const ACTIONS = {
     s.state = "sleep";
     s.sleepUntil = Date.now() + 3000; // 2 seconds from now
     s.energy = 100;
+    s.socialBattery = 100;
+    s.happiness = 100;
+    s.effects = [];
   },
   music: (s, choice) => {
     playMusic(choice.genre); 
@@ -78,11 +81,14 @@ const ACTIONS = {
     watchShow(choice.item);
     utils.applyStats(s, { happiness: 10 }); 
   },
+  changeLocation: (s, choice) => { changeLocation(choice.newLocation) },
+  goHome: (s, choice) => {goHomeAndSleep();}
 };
 
 // --- interaction
 let dialog = null;
 let bagMenu = null; // null = closed; { selected: 0 } = open
+let hungerWarned = false; // when true, opens the dialog
 
 // --- text box
 const FONT = "12px monospace"; // text font size
@@ -117,7 +123,7 @@ function goHomeAndSleep() {
   world.setMap("house");
   sonji.map = "house";
   sonji.tileX = 2; // a floor tile next to her bed
-  sonji.tileY = 4;
+  sonji.tileY = 5;
   ACTIONS.sleep(sonji);
 };
 
@@ -155,7 +161,7 @@ function selectShow(venue) {
     openDialog(
       "Oggi al " + venue + ": " + film.caption,
       [
-        { label: "Lo guardo", action: "watchMovie", item: film },
+        { label: "Lo guardo", action: "watchShow", item: film },
         { label: "Non mi va", action: null, reply: "Mi faccio un giro." },
       ] 
     );
@@ -175,11 +181,20 @@ function stopShow() {
   input.bagPressed = false;
 };
 
+// changing location 
+function changeLocation(newLocation){
+  world.setMap(newLocation);
+  sonji.map = newLocation;
+  sonji.tileX = 2; // a floor tile next to her bed
+  sonji.tileY = 4;
+}
+
 // emoji for the status bars
 const BARS = [
   { stat: "energy", icon: "⚡" },
   { stat: "satiety", icon: "🍝" },
   { stat: "happiness", icon: "😊" },
+  { stat: "socialBattery", icon: "💬" },
 ];
 
 function update(dt) {
@@ -195,6 +210,14 @@ function update(dt) {
     if (sonji.energy <= 0 && dialog === null) {
       openDialog("Non ho più energie... devo riposare. Torno a casa.", [], goHomeAndSleep);
     }
+    if (sonji.satiety <= 0 && hungerWarned !== true && dialog === null) {
+      openDialog("Ho super fame!! Devo mangiare qualcosa.");
+      hungerWarned = true; // the warning appears only once 
+    }
+    if (sonji.satiety > 0) {hungerWarned = false}; 
+
+    if (world.currentMap === 'house') sonji.socialBattery = utils.clamp( sonji.socialBattery + 0.5);
+
     for (const key in DECAY){
       sonji[key] = utils.clamp(sonji[key] - (DECAY[key] * dt));
     }
@@ -240,15 +263,16 @@ function update(dt) {
       // adding effect of being stoned
       // she moves slower
       const stonedFactor = fx.hasEffect(sonji, "stoned") ? 0.5 : 1;
+      const hungryFactor = sonji.satiety <= 0 ? 0.7 : 1; // she moves slower when she is hungry
 
-      progress += dt / stepDuration * (0.60 + 0.40 * sonji.energy / 100) * stonedFactor;
+      progress += dt / stepDuration * (0.60 + 0.40 * sonji.energy / 100) * stonedFactor * hungryFactor;
       if (progress >= 1){
         sonji.tileX = targetX;
         sonji.tileY = targetY;
 
         // step onto a door
         const door = world.objectAt(sonji.tileX, sonji.tileY);
-        // console.log("standing on:", door)
+        // console.log("standing on: ", door)
         if (door && door.kind === "door") {
           world.setMap(door.map);
           sonji.map = door.map;
@@ -256,7 +280,7 @@ function update(dt) {
           sonji.tileY = door.targetY;
         }
 
-        // is the next target a zone? 
+        // is where she is a zone? 
         const zone = world.zoneAt(sonji.tileX, sonji.tileY) ?? null;
         if (zone !== rememberedZone){
           if (zone) { playMusic(zone.music); }
@@ -268,7 +292,7 @@ function update(dt) {
       }
     }
 
-    // adding effect of sickness
+    // adding effect of sickness and stoned
     const sickFactor = fx.hasEffect(sonji, "sick") ? 2 : 1;
     for (const key in DECAY){
       sonji[key] = utils.clamp(sonji[key] - (DECAY[key] * sickFactor * dt));
@@ -296,10 +320,22 @@ function update(dt) {
           // object first, otherwise the tile
           const entry = object ? DIALOGS[object.dialog] : DIALOGS[tileName];
 
-          if (entry){ openDialog(entry.text, entry.choices ?? []); }
+          if (entry){
+            // do not open the text box if her social battery is off
+            if (sonji.socialBattery <= 0 && object?.kind === "npc") openDialog("(...Ho le batterie sociali a terra... Non ho voglia di parlare con nessuno, voglio tornare a casa.)"); 
+            else if ( entry.ifHas && sonji.inventory.find( item => item === entry.ifHas) ) {
+              openDialog(entry.ifHasText); 
+              if (object?.kind === "npc") sonji.socialBattery = utils.clamp( sonji.socialBattery - 10);
+            }
+            else{
+              openDialog(entry.text, entry.choices ?? []); 
+              if (object?.kind === "npc") sonji.socialBattery = utils.clamp( sonji.socialBattery - 10);
+            };
+          }
         }        
       }
-      else{  // text box already open; go to next page or close it after the dialog.page++ * LINES_PER_PAGE is bigger than lines length
+      else{  
+        // text box already open; go to next page or close it after the dialog.page++ * LINES_PER_PAGE is bigger than lines length
         if (dialog.choosing) {
           const choice = dialog.choices[dialog.selected];
           const before = dialog; // remember the dialog which is open now
@@ -338,7 +374,7 @@ function update(dt) {
       if (bagMenu) { // open
         bagMenu = null; // close it next
       } else if (dialog === null && !moving){ // check if it's empty, otherwise initialize it
-        if (sonji.inventory.length === 0) openDialog("The bag is empty.");
+        if (sonji.inventory.length === 0) openDialog("Lo zaino e' vuoto.");
         else bagMenu = { selected: 0 };
       }    
     }
@@ -391,7 +427,7 @@ function update(dt) {
 
     // movie view
     if (showView){
-      if (input.bagPressed){ stopMovie()}
+      if (input.bagPressed){ stopShow()}
     }
   }
   // resetting interaction buttons
@@ -506,16 +542,18 @@ function draw() {
   // bars
   ctx.font = "14px sans-serif";
   ctx.textBaseline = "middle";
+  const slot = canvas.width / BARS.length; // space per bar: 320 / 4 = 80 px
+  const barLen = slot - 28; 
   for (let i = 0; i < BARS.length; i++) {
     const b = BARS[i];
-    const x = 4 + i * 104; // spacing between the three bars
-    const y = 6;
+    const x = 3 + i * slot; // spacing between the three bars
+    const y = 10;
 
     ctx.fillText(b.icon, x, y + 4); // the icon
-    ctx.strokeStyle = "#0f380f"; 
-    ctx.strokeRect(x + 20, y, 70, 8); // bar outline
-    ctx.fillStyle = "#0f380f";
-    ctx.fillRect(x + 20, y, 70 * (sonji[b.stat] / 100), 8); // bar fill
+    ctx.strokeStyle = "#a80000"; 
+    ctx.strokeRect(x + 20, y, barLen, 8); // bar outline
+    ctx.fillStyle = "#8b0000";
+    ctx.fillRect(x + 20, y, barLen * (sonji[b.stat] / 100), 8); // bar fill
   }
 
   // active effects
@@ -614,6 +652,20 @@ function draw() {
       const name = ITEMS[sonji.inventory[i]].name;
       ctx.fillText(marker + name, bagX + 6, bagY + 4 + (i + 1) * LINE_H); // row 0 is the title
     }
+  }
+
+  // club lights for falegnameria
+  const inClub = rememberedZone?.fx === "club"; /* your condition: is she in the club? */
+  if (inClub) {
+    const now = performance.now();
+
+    const hue = (now / 10) % 360; // colour slowly cycles through the rainbow
+    const phase = (now % 60000 / 160) / 60000 / 160; // 0 → 1 within each beat (160 bpm)
+    const strength = (1 - phase) ** 2; // sharp flash on the beat, quick fade
+    const alpha = 0.1 + 0.3 * strength; // never fully off (0.1), up to 0.4 on the beat
+
+    ctx.fillStyle = `hsla(${hue}, 100%, 50%, ${alpha})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
   }
 }
 

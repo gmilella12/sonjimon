@@ -2,28 +2,45 @@ export const DIALOGS = {
     bar: {
         text: "Prendi una Peroni?",
         choices: [
-            { label: "Si, damm na birr da portare", action: "give", item: "peroni", reply: "Alla saluuut!" },
-            { label: "Si, damm na birr ghiacchiat mo proprj", action: "use", reply: "Alla saluuut!", item: "peroni"},
+            { label: "Si, da portare", action: "give", item: "peroni", reply: "(Birra -> zaino)." },
+            { label: "Si, bevo ora", action: "use", reply: "Alla saluuut!", item: "peroni"},
             { label: "No, grazie", action: null, reply: "E c si vnut a fa?" }
         ],
     },
     focacciaro: {
         text: "Cosa le serve?",
         choices: [
-            { label: "Focaccia", action: "give", item: "focaccia", reply: "Ecco, a lei!" },
-            { label: "Pane senza glutine", action: "give", item: "gfBread", reply: "Ecco, a lei!" },
-            { label: "Niente, grazie", action: null, reply: "E c si vnut a fa?" }
+            { label: "Focaccia.", action: "give", item: "focaccia", reply: "Ecco, a lei! (Focaccia -> zaino)." },
+            { label: "Pane senza glutine.", action: "give", item: "gfBread", reply: "Ecco, a lei (Pane -> zaino)." },
+            { label: "Niente, grazie.", action: null, reply: "E c si vnut a fa?" }
         ],
     },
     luke: {
-        text: "Amo andiamo alla falegnameria?",
+        text: "Amo, andiamo alla falegnameria?",
         choices: [
-            { label: "Sii, sono gasata", action: null, reply: "Top!" },
-            { label: "No amo... non mi va", action: null, reply: "Lame..." }
+            { label: "Sii, sono gasata!", action: "changeLocation", reply: "Top!", newLocation: "falegnameria" },
+            { label: "No amo... non mi va.", action: null, reply: "Lame..." }
+        ],
+    },
+    lukeFal: {
+        text: "Torniamo a casa?",
+        choices: [
+            { label: "Si amo, sono stanca.", action: "goHome" },
+            { label: "No, rimaniamo un po'.", action: null, reply: "Quando vuoi, dimmelo." }
+        ],
+    },
+    robertoFal: {
+        text: "Vuoi fumare Sonia cara?",
+        choices: [
+            { label: "Dai, fammelo fare un tiro", action: "use", item: "joint" },
+            { label: "No Roberto, grazie mille!", action: null, reply: "Tranquilla, quando vuoi dimmelo." }
         ],
     },
     building: {
         text: "Very cool building. Carlo Ratti wouldn't be able to do something like this...",
+    },
+    wallFalPaints: {
+        text: "Questi sono i quadri di Giuseppe Scarangelli!",
     },
     sea: {
         text: "Ahh, lovely smell of seaweed.",
@@ -57,23 +74,25 @@ export const DIALOGS = {
     cinema: {
         text: "Potrei guardarmi un film...",
         choices: [
-            { label: "Si, cosa c'e' al cinema?", action: "selectMovie", venue: "cinema" },
+            { label: "Si, cosa c'e' al cinema?", action: "selectShow", venue: "cinema" },
             { label: "No", action: null, reply: "Mi faccio un giro." },
         ]
     },
     theater: { 
         text: "Mi va di andare a teatro?",
         choices: [
-            { label: "Si, cosa c'e' in programma?", action: "selectMovie", venue: "theater" },
+            { label: "Si, cosa c'e' in programma?", action: "selectShow", venue: "theater" },
             { label: "No", action: null, reply: "Mi faccio un giro." },
         ]
     },
     peppeLerario: {
         text: "Ciao Sonia, ho trovato questa vecchia macchina fotografica che non uso piu'. Te la regalo se vuoi.",
         choices: [
-            { label: "Wow, che bel regalo!", action: "give", item: "camera", reply: "Ecco a te! Non ho controllato le foto... spero non siano strambe!" },
+            { label: "Wow, che bel regalo!", action: "give", item: "camera", reply: "Ecco a te! Non ho controllato le foto... spero non siano strambe (Camera -> zaino)!" },
             { label: "No peppe, non posso accettare!", action: null, reply: "Ok, quando vuoi ripassa da qui." }
         ],
+        ifHas: "camera",
+        ifHasText: "Allora, com'erano le foto? Spero niente di troppo strano!",
     },
     tonyL: {
         text: "Amo, vuoi fumare uno grosso?",
@@ -86,7 +105,7 @@ export const DIALOGS = {
         text: "Mi alleno?",
         choices: [
             { label: "Sala pesi", action: "stats", stats: {energy: -10, satiety: -10}, reply: "Minchia, che fatica!" },
-            { label: "Yoga", action: "stats", stats: {energy: -5, happiness: 10}, reply: "Mi sento rigenerata" }
+            { label: "Yoga", action: "stats", stats: {energy: -5, happiness: 10}, reply: "Mi sento rigenerata." }
         ],
     }
 };

@@ -8,6 +8,10 @@ export const SONGS = {
   reggae: [
     "music/reggae/Rockers International Records - King Tubby's Meets the Rockers Uptown - 01 Keep on Dubbing.mp3",
     "music/reggae/Rockers International Records - King Tubby's Meets the Rockers Uptown - 11 Frozen Dub.mp3"
+  ],
+  jungle: [
+    "music/reggae/Rockers International Records - King Tubby's Meets the Rockers Uptown - 01 Keep on Dubbing.mp3",
+    "music/reggae/Rockers International Records - King Tubby's Meets the Rockers Uptown - 11 Frozen Dub.mp3"
   ]
 };
 
