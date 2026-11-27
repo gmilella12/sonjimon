@@ -5,7 +5,7 @@ import { DIALOGS } from "./dialogs.js";
 import { ITEMS, useItem } from "./items.js";
 import * as fx from "./effects.js";
 import * as save from "./save.js";
-import { playMusic, stopMusic } from "./music.js";
+import { playMusic, stopMusic, nowPlaying } from "./music.js";
 import { PHOTOS } from "./photos.js";
 import { MOVIES } from "./cinema.js";
 import { SHOWS } from "./theater.js";
@@ -43,12 +43,19 @@ if (saved) Object.assign(sonji, saved.sonji);
 // switch to her saved map
 world.setMap(sonji.map);
 
+const V = 2; // browsing the latest .png version, not taking the cached one
+
 const sonjiImg = new Image(); // loading the sprite of sonji
-sonjiImg.src = "./sonjiSprit.png";
+sonjiImg.src = `./sonjiSprit.png?v=${V}`;
 await sonjiImg.decode();
+
+const npcsImg = new Image(); // loading the sprite of npcs
+npcsImg.src = `./npcs.png?v=${V}`;
+await npcsImg.decode();
 
 const SPRITE_W = 32; // the size of ONE frame, as drawn in Piskel
 const SPRITE_H = 48;
+const NPC_H = 64;
 
 let progress = 0;
 let targetX = 0;
@@ -58,6 +65,8 @@ let rememberedZone = null;
 // --- action
 let moving = false;
 const stepDuration = 0.25;
+let travelling = null; // null = not travelling; { until } = on the way
+let ballThrow = null; // throwing ball to camilla set it to ballThrow = { start: now, dog: , dir: "down" }
 
 const ACTIONS = {
   give: (s, choice) => {s.inventory.push(choice.item);}, // pushing items in the inventory
@@ -70,6 +79,7 @@ const ACTIONS = {
     s.socialBattery = 100;
     s.happiness = 100;
     s.effects = [];
+    rememberedZone = null;
   },
   music: (s, choice) => {
     playMusic(choice.genre); 
@@ -81,8 +91,18 @@ const ACTIONS = {
     watchShow(choice.item);
     utils.applyStats(s, { happiness: 10 }); 
   },
-  changeLocation: (s, choice) => { changeLocation(choice.newLocation) },
-  goHome: (s, choice) => {goHomeAndSleep();}
+  changeLocation: (s, choice) => { 
+    changeLocation(choice.newLocation) 
+    travelling = { until: Date.now() + 2000 };
+  },
+  goHome: (s, choice) => {goHomeAndSleep();},
+  throwBall: () => {
+    ballThrow = {
+      start: Date.now(),
+      dir: "down",
+      dog: world.objects.find(o => o.dialog === "camilla"),
+    };
+  },
 };
 
 // --- interaction
@@ -203,6 +223,9 @@ function update(dt) {
   // remove effects whose time is up 
   sonji.effects = sonji.effects.filter(e => e.until > Date.now());
 
+  // end the car trip when the 2 seconds are over
+  if (travelling && Date.now() >= travelling.until) travelling = null;
+
   if (sonji.state === "sleep"){
     ACTIONS.stopMusic();
     if (Date.now() >= sonji.sleepUntil) sonji.state = "awake";
@@ -222,7 +245,7 @@ function update(dt) {
       sonji[key] = utils.clamp(sonji[key] - (DECAY[key] * dt));
     }
     // grid movement
-    if (!moving && dialog === null && bagMenu === null && openView === null && showView == null){
+    if (!moving && dialog === null && bagMenu === null && openView === null && showView == null && travelling === null){
       if (input.up || input.down || input.left || input.right){
         targetX = sonji.tileX;
         targetY = sonji.tileY;
@@ -304,7 +327,7 @@ function update(dt) {
     } // first number slowness, second is strength
 
     // interaction 
-    if (input.aPressed && !moving && bagMenu === null && openView === null && showView === null ){
+    if (input.aPressed && !moving && bagMenu === null && openView === null && showView === null && travelling === null){
       if (dialog === null){ // text box NOT open; open and add text
         // which tile in front?
         const facingTileX = sonji.tileX + utils.FACINGDIRS[sonji.facing].x;
@@ -322,10 +345,16 @@ function update(dt) {
 
           if (entry){
             // do not open the text box if her social battery is off
-            if (sonji.socialBattery <= 0 && object?.kind === "npc") openDialog("(...Ho le batterie sociali a terra... Non ho voglia di parlare con nessuno, voglio tornare a casa.)"); 
+            if (sonji.socialBattery <= 0 && object?.kind === "npc") openDialog(
+              "(...Ho le batterie sociali a terra... Non ho voglia di parlare con nessuno, voglio tornare a casa.)"
+            ); 
             else if ( entry.ifHas && sonji.inventory.find( item => item === entry.ifHas) ) {
-              openDialog(entry.ifHasText); 
+              openDialog(entry.ifHasText); // in case she has an already given item in the bag
               if (object?.kind === "npc") sonji.socialBattery = utils.clamp( sonji.socialBattery - 10);
+            }
+            else if (object?.dialog === "aleuva" && world.objects.find(o => o.dialog === "camilla")?.hidden) {
+              openDialog(entry.ifBallThrownText); // when camilla is gone, another message from aleuva
+              if (object?.kind === "npc") sonji.socialBattery = utils.clamp( sonji.socialBattery - 5);
             }
             else{
               openDialog(entry.text, entry.choices ?? []); 
@@ -362,6 +391,25 @@ function update(dt) {
       }
     } 
 
+    for (const object of world.objects){
+      if (object.hidden === true && Date.now() >= object.returnAt ) {
+        object.hidden = false;
+      };
+    } // reset when the time has passed
+    if (ballThrow){
+      // how far along: 0 at the start → 1500 (the throw lasts 1.5 seconds)
+      const progress = (Date.now() - ballThrow.start) / 1500;
+      ballThrow.progress = progress
+      // move the dog: she runs DOWN, a bit behind the ball
+      ballThrow.dog.offsetY = progress * 8 * 32;  // the dog runs 8 tiles (in pixels)
+      if (progress >= 1) {
+        ballThrow.dog.hidden = true; // not drawn, not blocking
+        ballThrow.dog.offsetY = 0; // reset for when she's back
+        ballThrow.dog.returnAt = Date.now() + 10000; // back in 10 seconds
+        ballThrow = null;
+      }
+    }
+
     // choice menu
     if (dialog !== null && dialog.choosing) {
       if (input.upPressed) dialog.selected = Math.max(0, dialog.selected - 1);
@@ -373,7 +421,7 @@ function update(dt) {
     if (input.bagPressed && openView === null && showView === null){
       if (bagMenu) { // open
         bagMenu = null; // close it next
-      } else if (dialog === null && !moving){ // check if it's empty, otherwise initialize it
+      } else if (dialog === null && !moving && travelling === null){ // check if it's empty, otherwise initialize it
         if (sonji.inventory.length === 0) openDialog("Lo zaino e' vuoto.");
         else bagMenu = { selected: 0 };
       }    
@@ -385,10 +433,20 @@ function update(dt) {
       if (input.aPressed && sonji.inventory.length > 0 ){
         const itemId = sonji.inventory[bagMenu.selected];
         const item = ITEMS[itemId];
-        if (item.type === "gadget"){
+        if (itemId === "camera"){
           bagMenu = null;
           // open the camera viewer
           openDialog(item.text, [], openViewer);
+        }
+        else if (itemId === "cassette"){
+          bagMenu = null;
+          if (nowPlaying() === "halo") {
+            stopMusic();
+            openDialog("(Spengo la musica)");
+          } else {
+            playMusic("halo");
+            openDialog(item.text);
+          }
         }
         else{
           useItem(sonji, itemId);
@@ -497,16 +555,29 @@ function draw() {
     }
   }
 
-  // objects (people, signs, ...)
+  // objects/npc (people, signs, ...)
   for (const o of world.objects) {
-    if (o.kind === "building") continue; // skip buildings as they are already visible as tiles
-    ctx.fillStyle = "#8b4513"; 
-    ctx.fillRect(
-      o.tileX * TILE - camX, // world position minus camera, like the map tiles
-      o.tileY * TILE - camY,
-      o.tileW * TILE, // size in pixels
-      o.tileH * TILE
-    );
+    if (o.kind === "building" ) continue; // skip buildings as they are already visible as tiles
+    if (o.hidden) continue; // for the dog when the ball is thrown by sonji
+
+    // screen position of the object's tile (world position minus camera)
+    const ox = o.tileX * TILE - camX;
+    const oy = o.tileY * TILE - camY + (o.offsetY ?? 0); 
+
+    if (o.sprite !== undefined) {
+      // person with a sprite: cut their frame out of npcs.png
+      ctx.drawImage(
+        npcsImg,
+        o.sprite * SPRITE_W, 0, SPRITE_W, NPC_H,
+        ox, 
+        oy + o.tileH * TILE - NPC_H, // bottom of the slot = bottom of the object
+        SPRITE_W, NPC_H
+      );
+    } else {
+      // no sprite yet: placeholder square
+      ctx.fillStyle = "#8b4513";
+      ctx.fillRect(ox, oy, o.tileW * TILE, o.tileH * TILE);
+    }
   }
 
   // sonji
@@ -525,13 +596,18 @@ function draw() {
     SPRITE_W, SPRITE_H
   );
 
-  // facing line
-  // ctx.fillStyle = "#f0f2e4";
-  // if (sonji.facing === "up"){ ctx.fillRect(sx, sy, TILE, 1); }
-  // if (sonji.facing === "down"){ ctx.fillRect(sx, sy + TILE - 1, TILE, 1); }
-  // if (sonji.facing === "left"){ ctx.fillRect(sx, sy, 1, TILE); }
-  // if (sonji.facing === "right"){ ctx.fillRect(sx + TILE - 1, sy, 1, TILE); }
-  // ctx.fillStyle = "#2e412e";
+  // the ball that has been thwron for the dog
+  if (ballThrow) {
+    const p = Math.min(1, (ballThrow.progress ?? 0) * 1.4); // ball is faster than the dog
+    const startX = sx + TILE / 2; // from Sonji's hand
+    const startY = sy + TILE / 2;
+    const bx = startX; 
+    const by = startY + p * 10 * TILE - Math.sin(p * Math.PI) * 24; // arc: up in the middle, down at the end
+    ctx.fillStyle = "#d4e157"; // tennis-ball yellow-green
+    ctx.beginPath();
+    ctx.arc(bx, by, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   // fog over the world when she is stoned, under the UI
   if (fx.hasEffect(sonji, "stoned")) {
@@ -652,6 +728,19 @@ function draw() {
       const name = ITEMS[sonji.inventory[i]].name;
       ctx.fillText(marker + name, bagX + 6, bagY + 4 + (i + 1) * LINE_H); // row 0 is the title
     }
+  }
+
+  if (travelling) {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // progress 0 → 1 over the 2 seconds, so the car drives across
+    const progress = 1 - (travelling.until - Date.now()) / 2000;
+    const carX = 300 - progress * (canvas.width + 80); // from off-screen left to off-screen right
+
+    ctx.font = "48px sans-serif";
+    ctx.textBaseline = "middle";
+    ctx.fillText("🚗", carX, canvas.height / 2);
   }
 
   // club lights for falegnameria

@@ -33,7 +33,12 @@ export const ITEMS = {
     type: "joint",
     stats: {happiness: 10, energy: -5}, 
     effect: "stoned",
-  }
+  },
+  cassette: {
+    name: "22° Halo",
+    type: "gadget",
+    text: "Bobby 6 1 mito!"
+  },
 };
 
 export function useItem(s, itemId) {
@@ -41,7 +46,7 @@ export function useItem(s, itemId) {
     applyStats(s, item.stats); 
     if (item.effect) addEffect(s, item.effect); // timed effect
     if (item.gluten) {
-    applyStats(s, GLUTEN_PENALTY);
-    addEffect(s, "sick");
+      applyStats(s, GLUTEN_PENALTY);
+      addEffect(s, "sick");
     }
 }

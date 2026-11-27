@@ -34,6 +34,11 @@
                          "name":"dialog",
                          "type":"string",
                          "value":"bed"
+                        }, 
+                        {
+                         "name":"sprite",
+                         "type":"int",
+                         "value":1
                         }],
                  "rotation":0,
                  "type":"npc",
@@ -52,6 +57,11 @@
                          "name":"dialog",
                          "type":"string",
                          "value":"desk"
+                        }, 
+                        {
+                         "name":"sprite",
+                         "type":"int",
+                         "value":2
                         }],
                  "rotation":0,
                  "type":"npc",
@@ -61,7 +71,7 @@
                  "y":96
                 }, 
                 {
-                 "height":32,
+                 "height":64,
                  "id":4,
                  "name":"mina",
                  "opacity":1,
@@ -70,6 +80,11 @@
                          "name":"dialog",
                          "type":"string",
                          "value":"mina"
+                        }, 
+                        {
+                         "name":"sprite",
+                         "type":"int",
+                         "value":0
                         }],
                  "rotation":0,
                  "type":"npc",
@@ -125,7 +140,7 @@
         }, 
         {
          "columns":8,
-         "firstgid":13,
+         "firstgid":16,
          "image":"house_intern.png",
          "imageheight":32,
          "imagewidth":256,

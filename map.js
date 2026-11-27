@@ -71,7 +71,8 @@ setMap("city"); // start in the city
 export function objectAt(x, y) {
   return objects.find(o =>
     x >= o.tileX && x < o.tileX + o.tileW &&
-    y >= o.tileY && y < o.tileY + o.tileH
+    y >= o.tileY && y < o.tileY + o.tileH &&
+    o.hidden !== true
   );
 }
 

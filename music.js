@@ -5,17 +5,20 @@ export const SONGS = {
   classica: ["music/classica1.mp3"],
   bass: ["music/bass/Yunk - Lacking Input.mp3"],
   ambient: ["music/ambient/Various Artists - 22° Halo - 01 Genus Aix - Trickster.mp3"],
+  halo: [
+    "music/ambient/Various Artists - 22° Halo - 01 Genus Aix - Trickster.mp3",
+  ],
   reggae: [
     "music/reggae/Rockers International Records - King Tubby's Meets the Rockers Uptown - 01 Keep on Dubbing.mp3",
     "music/reggae/Rockers International Records - King Tubby's Meets the Rockers Uptown - 11 Frozen Dub.mp3"
   ],
   jungle: [
-    "music/reggae/Rockers International Records - King Tubby's Meets the Rockers Uptown - 01 Keep on Dubbing.mp3",
-    "music/reggae/Rockers International Records - King Tubby's Meets the Rockers Uptown - 11 Frozen Dub.mp3"
+    "music/jungle/02. Artificial Red - Shimmer.mp3"
   ]
 };
 
 let current = null; // the song playing right now
+let currentGenre = null; // saving the genre played right now
 
 export function playMusic(genre) {
   stopMusic(); // only one song at a time
@@ -24,11 +27,15 @@ export function playMusic(genre) {
   current = new Audio(file);
   current.onended = () => playMusic(genre); // when it ends, play another from the same genre
   current.play();
+  currentGenre = genre;
 }
+
+export function nowPlaying(){ return currentGenre; }
 
 export function stopMusic() {
   if (current) {
     current.pause();
     current = null;
+    currentGenre = null;
   }
 }

@@ -32,7 +32,7 @@ export const DIALOGS = {
     robertoFal: {
         text: "Vuoi fumare Sonia cara?",
         choices: [
-            { label: "Dai, fammelo fare un tiro", action: "use", item: "joint" },
+            { label: "Dai, fammelo fare un tiro.", action: "use", item: "joint" },
             { label: "No Roberto, grazie mille!", action: null, reply: "Tranquilla, quando vuoi dimmelo." }
         ],
     },
@@ -55,8 +55,8 @@ export const DIALOGS = {
     mina: {
         text: "Ma sei un gattino pelosone?!?",
         choices: [
-            { label: "Coccola", action: "stats", stats: {energy: 30, happiness: 20}, reply: "Purrrr..."},
-            { label: "Mina si arrabbia", action: "stats", stats: {energy: -10, happiness: -10}, reply: "Ahia! Graffio!"},
+            { label: "Coccola.", action: "stats", stats: {energy: 30, happiness: 20}, reply: "Purrrr..."},
+            { label: "Mina si arrabbia.", action: "stats", stats: {energy: -10, happiness: -10}, reply: "Ahia! Graffio!"},
         ]
     },
     desk: {
@@ -75,14 +75,14 @@ export const DIALOGS = {
         text: "Potrei guardarmi un film...",
         choices: [
             { label: "Si, cosa c'e' al cinema?", action: "selectShow", venue: "cinema" },
-            { label: "No", action: null, reply: "Mi faccio un giro." },
+            { label: "No.", action: null, reply: "Mi faccio un giro." },
         ]
     },
     theater: { 
         text: "Mi va di andare a teatro?",
         choices: [
             { label: "Si, cosa c'e' in programma?", action: "selectShow", venue: "theater" },
-            { label: "No", action: null, reply: "Mi faccio un giro." },
+            { label: "No.", action: null, reply: "Mi faccio un giro." },
         ]
     },
     peppeLerario: {
@@ -100,6 +100,31 @@ export const DIALOGS = {
             { label: "Dai, fammelo fare un tiro", action: "use", item: "joint", reply: "Eccolo lo sbombolones." },
             { label: "No amo, sto gia' squagliata di mio", action: null, reply: "Tranqui, quando vuoi sta fatto." }
         ],
+    },
+    bobby: {
+        text: "Amo, ho una cassetta di 22° Halo in piu'. La vuoi?",
+        choices: [
+            { label: "Moh si!", action: "give", item: "cassette", reply: "Awand." },
+            { label: "No amo, grazie.", action: null, reply: "Tranqui, se la vuoi dimmelo." }
+        ],
+        ifHas: "cassette",
+        ifHasText: "Oh, pero' compra l'album su Bandcamp pure...",
+    },
+    camilla: {
+        text: "Bau! Bau!",
+        choices: [
+            { label: "Lancio la palla.", action: "throwBall" },
+            { label: "Coccola.", action: "stats", stats: {energy: 10, happiness: 20}, reply: "Bauuu! Bauuuu!" },
+            { label: "Non faccio niente.", action: null }
+        ],
+    },
+    aleuva: {
+        text: "Amo, vuoi giocare con Camilla? Le puoi lanciare la palla.",
+        choices: [
+            { label: "Ok, ci provo.", action: null, reply: "Interagisci con lei." },
+            { label: "No amo, non mi va.", action: null, reply: "Ok, perche' non fai un salto al cinema?" }
+        ],
+        ifBallThrownText: "Amo ma l'hai lanciata in culonia...chissa' quando torna ora!",
     },
     gym: {
         text: "Mi alleno?",
